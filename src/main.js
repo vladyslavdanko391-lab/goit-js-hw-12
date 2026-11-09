@@ -18,11 +18,22 @@ let query;
 let page = 1;
 const perPage = 15;
 
+function showErrorToast(message) {
+  iziToast.error({
+    title: 'Помилка',
+    message,
+  });
+}
+
+function getTotalPages(totalHits) {
+  return Math.ceil(Math.min(totalHits, 500) / perPage);
+}
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   page = 1;
   query = input.value.trim();
-
+  hideLoadMoreButton();
   if (!query) {
     iziToast.warning({
       title: 'Увага',
@@ -38,73 +49,73 @@ form.addEventListener('submit', async event => {
     const data = await getImagesByQuery(query, page);
 
     if (data.hits.length === 0) {
-      iziToast.error({
-        title: 'Помилка',
-        message:
-          'Sorry, there are no images matching your search query. Please try again!',
-      });
+      showErrorToast('Sorry, there are no images matching your search query. Please try again!');
       return;
     }
    
     createGallery(data.hits);
+    const totalPages = getTotalPages(data.totalHits);
+    if (page < totalPages) {
+      showLoadMoreButton();
+    } else {
+      hideLoadMoreButton();
+    }
   } catch (error) {
-    iziToast.error({
-      title: 'Помилка',
-      message: 'Something went wrong. Please try again!',
-    });
+    showErrorToast('Something went wrong. Please try again!');
     console.log(error);
   } finally {
     hideLoader();
-    showLoadMoreButton();
   }
 });
  
 loadMoreButton.addEventListener('click', async () => {
-  page += 1;
+  const nextPage = page + 1;
+
+  hideLoadMoreButton();
   showLoader();
-  let data;
+
   try {
-    data = await getImagesByQuery(query, page);
+    const data = await getImagesByQuery(query, nextPage);
 
     if (data.hits.length === 0) {
-      iziToast.error({
-        title: 'Помилка',
-        message:
-          'Sorry, there are no images matching your search query. Please try again!',
-      });
+      showErrorToast(
+        'Sorry, there are no images matching your search query. Please try again!'
+      );
       return;
     }
 
+    page = nextPage;
+
     createGallery(data.hits);
+
+    const totalPages = getTotalPages(data.totalHits);
+
+    if (page < totalPages) {
+      showLoadMoreButton();
+    } else {
+      iziToast.info({
+        title: 'Info',
+        message: "We're sorry, but you've reached the end of search results.",
+      });
+    }
+
+    const gallery = document.querySelector('.gallery');
+    const lastCard = gallery.lastElementChild;
+
+    if (lastCard) {
+      const { height: cardHeight } = lastCard.getBoundingClientRect();
+
+      window.scrollBy({
+        top: cardHeight * 2,
+        behavior: 'smooth',
+      });
+    }
   } catch (error) {
-    iziToast.error({
-      title: 'Помилка',
-      message: 'Something went wrong. Please try again!',
-    });
+    showErrorToast('Something went wrong. Please try again!');
     console.log(error);
+    showLoadMoreButton();
   } finally {
     hideLoader();
-    showLoadMoreButton();
   }
-  const totalPages = Math.ceil(Math.min(data.totalHits, 500) / perPage);
+});
 
-  if (page >= totalPages) {
-    hideLoadMoreButton();
-
-    iziToast.info({
-      title: 'Info',
-      message: "We're sorry, but you've reached the end of search results.",
-    });
-  }
-}); 
-
-const firstCard = document.querySelector(".gallery").firstElementChild;
-
-if (firstCard) {
-  const { height: cardHeight } = firstCard.getBoundingClientRect();
-
-  window.scrollBy({
-    top: cardHeight * 2,
-    behavior: "smooth",
-  });
-}
