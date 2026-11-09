@@ -98,11 +98,13 @@ loadMoreButton.addEventListener('click', async () => {
   }
 }); 
 
-const { height: cardHeight } = document
-  .querySelector(".gallery")
-  .firstElementChild.getBoundingClientRect();
+const firstCard = document.querySelector(".gallery").firstElementChild;
 
-window.scrollBy({
-  top: cardHeight * 2,
-  behavior: "smooth",
-});
+if (firstCard) {
+  const { height: cardHeight } = firstCard.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: "smooth",
+  });
+}
