@@ -39,6 +39,17 @@ jobs:
         env:
             VITE_PIXABAY_API_KEY: ${{ secrets.VITE_PIXABAY_API_KEY }}
 
+      - name: Check API key
+        run: |
+          if [ -n "$VITE_PIXABAY_API_KEY" ]; then
+            echo "API key is available"
+          else
+            echo "API key is EMPTY"
+            exit 1
+          fi
+        env:
+          VITE_PIXABAY_API_KEY: ${{ secrets.VITE_PIXABAY_API_KEY }}
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
