@@ -9,6 +9,7 @@ const sourceRoot = resolve(projectRoot, 'src');
 
 export default defineConfig(({ command }) => {
   return {
+    envDir: projectRoot,
     // base для GitHub Pages береться з назви репозиторію під час деплою;
     // локально (без GITHUB_REPOSITORY) — '/'
     base: process.env.GITHUB_REPOSITORY
